@@ -1,3 +1,4 @@
+
 /* Author by : ahmed khider(2026)*/
 
 #ifndef STORM_UTILITY
@@ -44,7 +45,7 @@ typedef enum {
 #define  STRM_LOG_NONE 0
 #define  STRM_LOG_OFF  1
 #define  STRM_LOG_ON   2
-
+#define ZERO_CHAR '\n'
 typedef struct
 {
   Atom wm_delete_win;

@@ -5,11 +5,11 @@
 #include <string.h>
 
 strm_cntxt *global_ctx;
-
+int count;
 void strm_begin(strm_cntxt *ctx)
 {
-  //  global_ctx = NULL;
 
+  
   strm_log("Started Context Successfully",STRM_SUCCESS);
   strm_window_init(ctx);
 
@@ -31,20 +31,12 @@ void strm_begin(strm_cntxt *ctx)
 
 void strm_end(strm_cntxt *ctx)
 {
-  if(ctx->window.x11.dis !=NULL){;
-     XDestroyWindow(ctx->window.x11.dis,ctx->window.x11.win);
-    
-     if( XCloseDisplay(ctx->window.x11.dis)==0)
-       {
-       strm_log("Window Closed Successfully",STRM_SUCCESS);
-       }
-     else 
-       {
-	 strm_log("Fail To Close Window",STRM_ERROR);
-       }
-         ctx->state = 0;
-   
+  if(ctx->window.x11.dis !=NULL){
+
+    XDestroyWindow(ctx->window.x11.dis,ctx->window.x11.win);
+   ctx->state = 0;
    strm_log("Stop Context Successfully",STRM_SUCCESS);
+
   }
   else
     {
@@ -54,7 +46,7 @@ void strm_end(strm_cntxt *ctx)
 
 void strm_window_init(strm_cntxt *ctx)
 {
-  ctx->window.x11.dis=malloc(sizeof(Display*));
+  ctx->window.x11.dis=NULL;
   ctx->window.x11.root= 0;
   ctx->window.x11.win = 0;
   ctx->window.x11.scn = 0;
@@ -94,9 +86,9 @@ void  strm_draw_window(char *title,int w, int h,int x, int y
     XSelectInput(ctx->window.x11.dis, ctx->window.x11.win,
 		 ExposureMask | KeyPressMask|StructureNotifyMask);
 
-
+    
     ctx->window.x11.img =
-        XCreateImage (ctx->window.x11.dis,
+         XCreateImage (ctx->window.x11.dis,
                      DefaultVisual(ctx->window.x11.dis, ctx->window.x11.scn),
                      STRM_MAX_24_BIT, ZPixmap, STRM_ZERO,
                      ctx->window.x11.pixels,w,h,32,STRM_ZERO);
@@ -105,19 +97,26 @@ void  strm_draw_window(char *title,int w, int h,int x, int y
 
     ctx->init=0;
       }
- 
+
+
+  
+
+  while(XPending(ctx->window.x11.dis))    
+    {
+     
+    XNextEvent(ctx->window.x11.dis,&ctx->window.x11.evt);
+
+
   if (ctx->window.x11.evt.xclient.type == ClientMessage)
     {
-    if (ctx->window.x11.evt.xclient.data.l[0] == ctx->window.x11.wm.wm_delete_win) {
+    if (ctx->window.x11.evt.xclient.data.l[0] == ctx->window.x11.wm.wm_delete_win)
+      {
       ctx->state =0;
+      }
     }
-        }
-
-
     
-  
- 
-  XNextEvent(ctx->window.x11.dis,&ctx->window.x11.evt);
+    }
+
 
 }
 
@@ -127,6 +126,7 @@ void  strm_draw_window(char *title,int w, int h,int x, int y
 void strm_draw_rect(int x, int y, unsigned int w, unsigned int h,strm_color clr,
                     strm_cntxt *ctx) {
 
+  
     if (ctx->window.x11.evt.type == Expose)
       {
       XSetForeground(ctx->window.x11.dis,
@@ -136,10 +136,10 @@ void strm_draw_rect(int x, int y, unsigned int w, unsigned int h,strm_color clr,
        
        XDrawRectangle(ctx->window.x11.dis, ctx->window.x11.win,
                       DefaultGC(ctx->window.x11.dis,
-                      ctx->window.x11.scn), x,y,w,h);
+                      ctx->window.x11.scn),x,y,w,h);
 
-       XFlush(ctx->window.x11.dis);
-  
+              XFlush(ctx->window.x11.dis);
+	      
     }  
 }
 
@@ -169,8 +169,12 @@ strm_txt_color strm_reset_color()
 }
 void strm_set_deflt_cntxt(strm_cntxt *ctx)
 {
-  if (ctx != NULL) global_ctx = ctx;
-    
+  if (ctx != NULL)
+    {
+      global_ctx = NULL;
+      global_ctx = ctx;
+    }
+
   if (ctx == NULL)
     strm_log("Unvalid Default Context",STRM_ERROR);
 }
@@ -179,18 +183,33 @@ void strm_set_deflt_cntxt(strm_cntxt *ctx)
 void strm_log(strm_str log,strm_state state)
 {
 
- 
-  char *txt_color=strm_log_color(state);
 
-  if (strm_term_support_clr())
-    {
-        printf("%sSTORM:%s%s\n",txt_color,strm_reset_color(),log);
-  }
-  else
-  {
-    printf("STORM:%s\n",log);  
-  }
- }
+    char *txt_color=strm_log_color(state);
+
+    switch(global_ctx->setting.log)
+      {
+      case STRM_LOG_NONE:
+      case STRM_LOG_ON:
+
+	if (strm_term_support_clr())
+	  {
+	    printf("%sSTORM:%s%s\n",txt_color,strm_reset_color(),log);
+	  }
+
+	else
+	  {
+	    printf("STORM:%s\n",log);
+	  }
+	break;
+
+      case STRM_LOG_OFF:
+	printf("\n");
+	break;
+	
+      }
+}
+
+
 
 
 bool strm_term_support_clr()
