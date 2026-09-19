@@ -25,10 +25,6 @@
 #define STRM_YELLOW "\033[1;33m" 
 #define STRM_BLUE   "\033[1;34m"
 
-#ifdef  STRM_RUN_LOGS
-#else
-#define STRM_RUN_LOGS 0
-#endif /*STRM_RUN_LOGS*/
 
 typedef unsigned long strm_color;
 typedef char *strm_str ;
@@ -46,6 +42,8 @@ typedef enum {
 #define  STRM_LOG_OFF  1
 #define  STRM_LOG_ON   2
 #define ZERO_CHAR '\n'
+
+
 typedef struct
 {
   Atom wm_delete_win;
@@ -65,24 +63,28 @@ typedef struct
 
 typedef struct
 {
-  strm_str   title;
-  strm_x11   x11;
-
-} strm_window;
-
+  int log;
+} strm_set;
+  
 typedef struct
 {
-  int log;
-} strm_ctx_setngs;
+  strm_str   title;
+  strm_x11   x11;
+  
+} strm_window;
 
-typedef struct
+typedef struct strm_cntxt
 {
   bool state;
   bool init;
   strm_window window;
-  strm_ctx_setngs setting; 
+  strm_set   setting;
+  
 } strm_cntxt;
 
+strm_cntxt*  strm_init_cntxt();
+
+void strm_free_cntxt();
 
 void strm_begin(strm_cntxt *ctx);
 
