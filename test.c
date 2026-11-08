@@ -14,7 +14,7 @@ int main(void)
   Window win=XCreateSimpleWindow(dis,root,0,0,480,360,0,0xFF0000,0x0000FF);
   int run=1;
   strm_cntxt *ctx;
-  
+ 
   
   XEvent evt;
   Atom wm_delete_win=XInternAtom(dis , "WM_DELETE_WINDOW", False);

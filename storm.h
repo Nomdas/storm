@@ -13,11 +13,8 @@
 
 
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
-#define STRM_MAX_16_BIT 65336
-#define STRM_MAX_24_BIT 16777215
-#define STRM_ZERO 0
-#define STRM_ONE 1
 
 #define STRM_NORMAL "\033[0m"
 #define STRM_RED    "\033[1;31m"
@@ -27,6 +24,7 @@
 
 
 typedef unsigned long strm_color;
+typedef char byte; 
 typedef char *strm_str ;
 typedef char *strm_txt_color;
 
@@ -59,17 +57,24 @@ typedef struct
   strm_wm wm;
   XEvent evt;
   char *pixels;
+  int w;
+  int h;
+  
 } strm_x11;
 
 typedef struct
 {
   int log;
+  int fps;
+  clock_t last_time;
+  clock_t current_time;
+  double delta_time;
 } strm_set;
   
 typedef struct
 {
-  strm_str   title;
-  strm_x11   x11;
+  const char * title;
+  strm_x11     x11;
   
 } strm_window;
 
@@ -78,13 +83,16 @@ typedef struct strm_cntxt
   bool state;
   bool init;
   strm_window window;
-  strm_set   setting;
+  strm_set    setting;
   
 } strm_cntxt;
 
+extern strm_cntxt *global_ctx;
+
+
 strm_cntxt*  strm_init_cntxt();
 
-void strm_free_cntxt();
+void strm_free_cntxt(strm_cntxt *ctx);
 
 void strm_begin(strm_cntxt *ctx);
 
@@ -93,10 +101,6 @@ void strm_end(strm_cntxt *ctx);
 strm_cntxt strm_deflt_cntxt();
 
 void strm_set_deflt_cntxt(strm_cntxt *ctx);
-
-void strm_draw_window(char *title,int w, int h,int x, int y
-     ,int bw,strm_color brc, strm_color bgc , strm_cntxt *ctx);
-
 
 int  strm_win_state(strm_cntxt *ctx);
 
@@ -109,7 +113,9 @@ void strm_draw_window(char *title,int w, int h,int x, int y
 
 void strm_draw_rect(int x,int y,unsigned int w,unsigned int h,strm_color clr,strm_cntxt *ctx);
 
-strm_color strm_rand_color();
+int strm_get_width(strm_cntxt *ctx);
+int strm_get_height(strm_cntxt *ctx);
+
 
 strm_txt_color strm_log_color(strm_state state);
 
